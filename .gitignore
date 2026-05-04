@@ -16,3 +16,7 @@ models/*
 
 # Notebooks
 .ipynb_checkpoints/
+
+# MLflow
+mlruns/
+mlflow.db
