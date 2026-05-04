@@ -37,20 +37,28 @@ def backtest():
 
     model = mlflow.sklearn.load_model(model_uri)
 
-    # ===== PREDICTIONS =====
-    preds = model.predict(X_test)
+    # ===== PROBABILIDADES =====
+    proba = model.predict_proba(X_test)[:, 1]
+    proba = pd.Series(proba, index=X_test.index)
 
-    # returns
+    # ===== RETURNS =====
     returns = prices_test.pct_change().shift(-1)
+    returns = returns.loc[proba.index]
 
-    # convertir preds a serie con índice correcto
-    preds = pd.Series(preds, index=X_test.index)
+    # ===== STRATEGY (threshold) =====
+    # threshold = 0.55  # se puede tunear esto
+    # signal = (proba > threshold).astype(int)
 
-    # alinear
-    returns = returns.loc[preds.index]
+    # percentil dinámico (top 30% señales)
+    threshold = proba.quantile(0.7)
 
-    # estrategia
-    strategy_returns = returns * preds
+    signal = (proba > threshold).astype(int)
+
+    # evitar operar días consecutivos
+    signal = signal * (signal.shift(1) == 0)
+    signal = signal.fillna(0)
+
+    strategy_returns = returns * signal
 
     # ===== CUMULATIVE =====
     cum_strategy = (1 + strategy_returns.fillna(0)).cumprod()
