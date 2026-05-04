@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Data (DVC lo maneja)
+data/*
+!data/.gitkeep
+
+# Models
+models/*
+!models/.gitkeep
+
+# Env
+.env
+
+# Notebooks
+.ipynb_checkpoints/
