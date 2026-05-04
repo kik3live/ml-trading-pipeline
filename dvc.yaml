@@ -1,0 +1,13 @@
+stages:
+  download:
+    cmd: python src/data/download_data.py
+    outs:
+      - data/raw/market_data.parquet
+
+  features:
+    cmd: python src/features/build_features.py
+    deps:
+      - data/raw/market_data.parquet
+    outs:
+      - data/processed/features.parquet
+      - data/processed/target.parquet
