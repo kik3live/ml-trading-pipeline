@@ -1,10 +1,9 @@
 import pandas as pd
-from pathlib import Path
-
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
 
 import mlflow
@@ -17,50 +16,67 @@ def load_data():
     return X, y
 
 
+def evaluate(model, X_test, y_test):
+    y_pred = model.predict(X_test)
+    y_proba = model.predict_proba(X_test)[:, 1]
+
+    return {
+        "accuracy": accuracy_score(y_test, y_pred),
+        "f1": f1_score(y_test, y_pred),
+        "roc_auc": roc_auc_score(y_test, y_proba)
+    }
+
+
 def train():
 
-    # ===== DATA =====
     X, y = load_data()
 
+    # time series → no shuffle
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, shuffle=False
     )
 
-    # ===== PIPELINE =====
-    pipe = Pipeline([
-        ("scaler", StandardScaler()),
-        ("model", LogisticRegression(max_iter=1000))
-    ])
-
-    # ===== MLFLOW =====
     mlflow.set_experiment("trading_pipeline")
 
-    with mlflow.start_run():
+    models = {
+        "logistic_regression": Pipeline([
+            ("scaler", StandardScaler()),
+            ("model", LogisticRegression(max_iter=1000))
+        ]),
+        "random_forest": Pipeline([
+            ("model", RandomForestClassifier(n_estimators=100, random_state=42))
+        ])
+    }
 
-        pipe.fit(X_train, y_train)
+    results = []
 
-        y_pred = pipe.predict(X_test)
-        y_proba = pipe.predict_proba(X_test)[:, 1]
+    for name, model in models.items():
 
-        acc = accuracy_score(y_test, y_pred)
-        f1 = f1_score(y_test, y_pred)
-        roc = roc_auc_score(y_test, y_proba)
+        with mlflow.start_run(run_name=name):
 
-        # log params
-        mlflow.log_param("model", "logistic_regression")
+            model.fit(X_train, y_train)
 
-        # log metrics
-        mlflow.log_metric("accuracy", acc)
-        mlflow.log_metric("f1", f1)
-        mlflow.log_metric("roc_auc", roc)
+            metrics = evaluate(model, X_test, y_test)
 
-        # log model
-        mlflow.sklearn.log_model(pipe, "model")
+            # log params
+            mlflow.log_param("model", name)
 
-        print("\n=== RESULTS ===")
-        print(f"Accuracy: {acc:.4f}")
-        print(f"F1: {f1:.4f}")
-        print(f"ROC-AUC: {roc:.4f}")
+            # log metrics
+            for k, v in metrics.items():
+                mlflow.log_metric(k, v)
+
+            # log model
+            mlflow.sklearn.log_model(model, name="model")
+
+            print(f"\n=== {name.upper()} ===")
+            for k, v in metrics.items():
+                print(f"{k}: {v:.4f}")
+
+            results.append((name, metrics["roc_auc"]))
+
+    # seleccionar mejor modelo
+    best_model = max(results, key=lambda x: x[1])
+    print("\nBEST MODEL:", best_model)
 
 
 if __name__ == "__main__":
