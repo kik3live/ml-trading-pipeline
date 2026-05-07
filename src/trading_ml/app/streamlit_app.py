@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import joblib
+
+model = joblib.load("models/best_model.pkl")
 
 st.set_page_config(
     page_title="Trading ML App",
@@ -40,17 +43,15 @@ spy_return = st.slider(
     step=0.001
 )
 
-if st.button("Generate Prediction"):
+if st.button("Generate Trading Signal"):
 
-    avg_signal = np.mean([
+    features = np.array([[
         aapl_return,
         nvda_return,
         spy_return
-    ])
+    ]])
 
-    probability = 0.5 + avg_signal
-
-    probability = max(0, min(1, probability))
+    probability = model.predict_proba(features)[0][1]
 
     prediction = "📈 UP" if probability > 0.5 else "📉 DOWN"
 

@@ -13,6 +13,11 @@ import joblib
 
 def load_data():
     X = pd.read_parquet("data/processed/features.parquet")
+    X = X[[
+        "AAPL_ret",
+        "NVDA_ret",
+        "SPY_ret"
+    ]]
     y = pd.read_parquet("data/processed/target.parquet")["target"]
     return X, y
 
