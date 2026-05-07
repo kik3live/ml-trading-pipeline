@@ -10,7 +10,7 @@ venv/
 
 # Data
 data/
-models/
+# models/
 *.parquet
 *.pkl
 *.pt

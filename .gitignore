@@ -20,3 +20,8 @@ models/*
 # MLflow
 mlruns/
 mlflow.db
+
+# Serialized artifacts
+*.pkl
+*.pt
+*.pth

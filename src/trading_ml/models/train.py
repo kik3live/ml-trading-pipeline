@@ -9,6 +9,7 @@ from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
 import mlflow
 import mlflow.sklearn
 
+import joblib
 
 def load_data():
     X = pd.read_parquet("data/processed/features.parquet")
@@ -48,7 +49,10 @@ def train():
         ])
     }
 
-    results = []
+    # results = []
+    best_score = -1
+    best_model = None
+    best_model_name = None
 
     for name, model in models.items():
 
@@ -72,11 +76,21 @@ def train():
             for k, v in metrics.items():
                 print(f"{k}: {v:.4f}")
 
-            results.append((name, metrics["roc_auc"]))
+            # results.append((name, metrics["roc_auc"]))
+            if metrics["roc_auc"] > best_score:
+                best_score = metrics["roc_auc"]
+                best_model = model
+                best_model_name = name
 
     # seleccionar mejor modelo
-    best_model = max(results, key=lambda x: x[1])
-    print("\nBEST MODEL:", best_model)
+    # best_model = max(results, key=lambda x: x[1])
+    # print("\nBEST MODEL:", best_model)
+    print(f"\nBEST MODEL: {best_model_name}")
+    print(f"BEST ROC AUC: {best_score:.4f}")
+
+    joblib.dump(best_model, "models/best_model.pkl")
+
+    print("Model saved to models/best_model.pkl")
 
 
 if __name__ == "__main__":
