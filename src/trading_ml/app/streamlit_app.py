@@ -20,25 +20,25 @@ Aplicación de Machine Learning para generar señales predictivas sobre SPY.
 st.header("📊 Market Inputs")
 
 aapl_return = st.slider(
-    "AAPL Daily Return",
-    min_value=-0.1,
-    max_value=0.1,
+    "AAPL Latest Daily Return",
+    min_value=-0.05,
+    max_value=0.05,
     value=0.01,
     step=0.001
 )
 
 nvda_return = st.slider(
-    "NVDA Daily Return",
-    min_value=-0.1,
-    max_value=0.1,
+    "NVDA Latest Daily Return",
+    min_value=-0.05,
+    max_value=0.05,
     value=0.01,
     step=0.001
 )
 
 spy_return = st.slider(
-    "SPY Daily Return",
-    min_value=-0.1,
-    max_value=0.1,
+    "SPY Latest Daily Return",
+    min_value=-0.05,
+    max_value=0.05,
     value=0.01,
     step=0.001
 )
